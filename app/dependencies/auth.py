@@ -37,18 +37,12 @@ def decode_jwt_token(token):
     return decoded_payload
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db : SessionLocal = Depends(get_db)):
+async def get_current_user(token: str = Depends(oauth2_scheme), db: SessionLocal = Depends(get_db)):
     token = decode_jwt_token(token)
     user_service = UserServices(db)
     username = token.get("sub")
     user = user_service.get_by_username(username)
     return user
-
-
-async def check_is_admin(user: User = Depends(get_current_user)) -> User:
-    if user.role == RolesEnum.ADMIN:
-        return user
-    raise HTTPException(status_code=403)
 
 
 async def check_is_default_user(user: User = Depends(get_current_user)) -> User:
@@ -59,6 +53,12 @@ async def check_is_default_user(user: User = Depends(get_current_user)) -> User:
 
 async def check_is_manager(user: User = Depends(get_current_user)) -> User:
     if user.role in [RolesEnum.MANAGER, RolesEnum.ADMIN]:
+        return user
+    raise HTTPException(status_code=403)
+
+
+async def check_is_admin(user: User = Depends(get_current_user)) -> User:
+    if user.role == RolesEnum.ADMIN:
         return user
     raise HTTPException(status_code=403)
 

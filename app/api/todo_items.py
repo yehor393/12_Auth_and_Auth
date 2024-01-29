@@ -1,22 +1,23 @@
 from typing import Optional
-
 from fastapi import APIRouter, Depends
 from schemas.todo import Todo, TodoCreate, TodoUpdate
+from schemas.user import User
 from dependencies.database import get_db, SessionLocal
 from services.todos import TodoServices
-from fastapi import Query
+from dependencies.auth import check_is_admin, check_is_manager, check_is_default_user
+
 
 router = APIRouter()
 
 
 @router.get("/")
-async def list_todos(db: SessionLocal = Depends(get_db)) -> list[Todo]:
+async def list_todos(user: User = Depends(check_is_default_user), db: SessionLocal = Depends(get_db)) -> list[Todo]:
     todo_items = TodoServices(db=db).get_all_todos()
     return todo_items
 
 
 @router.get("/{id}")
-async def get_detail(id: int, db: SessionLocal = Depends(get_db)) -> Todo:
+async def get_detail(id: int, user: User = Depends(check_is_default_user), db: SessionLocal = Depends(get_db)) -> Todo:
     todo_item = TodoServices(db=db).get_by_id(id)
     return todo_item
 
@@ -38,7 +39,7 @@ async def get_upcoming_birthdays(db: SessionLocal = Depends(get_db)):
 
 
 @router.post("/")
-async def create_todo(todo_item: TodoCreate, db: SessionLocal = Depends(get_db)) -> TodoCreate:
+async def create_todo(todo_item: TodoCreate, admin: User = Depends(check_is_admin), db: SessionLocal = Depends(get_db)) -> TodoCreate:
     new_item = TodoServices(db=db).create_new(todo_item)
     return new_item
 

@@ -17,12 +17,19 @@ class UserRepo():
         self.db.refresh(new_user)
         return new_user
 
-    def get_by_username(self, username, password):
+    def update(self, user):
+        self.db.query(UserDB).filter(UserDB.username == user.username).delete()
+        return self.create(user)
+
+    def get_by_username(self, username):
+        return self.db.query(UserDB).filter(UserDB.username == username).first()
+
+    def get_user_and_check_pass(self, username, password):
         user = self.db.query(UserDB).filter(UserDB.username == username).first()
         password_from_db = user.password
         user_salt = user.salt
         hashed_pass, _ = self.hash_password(password=password, salt=user_salt)
-        if self.hash_password(password=password, salt=user_salt) == password_from_db:
+        if hashed_pass == password_from_db:
             return user
         else:
             return None
@@ -30,7 +37,7 @@ class UserRepo():
     def generate_salt(self):
         return os.urandom(16)  # 16 байтів солі (128 біт)
 
-    def hash_password(self, password, salt=None) -> tuple[str, str]:
+    def hash_password(self, password, salt=None) -> tuple[str]:
         if salt is None:
             salt = self.generate_salt()
         else:
