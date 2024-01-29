@@ -4,11 +4,12 @@ from dependencies.auth import Token, create_access_token, get_current_user
 from schemas.user import User
 from services.users import UserServices
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import status
 
 router = APIRouter()
 
 
-@router.post("/register/", response_model=User)
+@router.post("/register/", response_model=User,  status_code=status.HTTP_201_CREATED)
 async def register(user: User,
                    db: SessionLocal = Depends(get_db)):
 

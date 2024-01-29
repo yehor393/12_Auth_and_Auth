@@ -12,6 +12,7 @@ class User(BaseModel):
     username: str
     password: str
     role: RolesEnum
+    email: str
 
     class Config:
         orm_mode = True
